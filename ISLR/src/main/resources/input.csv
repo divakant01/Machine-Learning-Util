@@ -13,3 +13,7 @@ id,category1,category2
 23,cat23,cat23
 1000,cat1000,cat1000
 2000,cat2000,cat2000
+,,
+1,
+,cat,
+,,cat2
