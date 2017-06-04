@@ -58,14 +58,14 @@ plot (x ,
       ylab = " this is the y - axis " ,
       main = " Plot of X vs Y ")
 
-#' pdf func is used to save the plot, 
+#' pdf func is used to save the plot,
 #' dev.off is used to indiacate that we are done with plot
 pdf("ISLR/src/main/resources/Figure.pdf")
-plot (x ,y , col =" green ")
+plot (x , y , col = " green ")
 dev.off ()
 
 #'seq() can be used to create a sequence of numbers
-seq (1 ,10)
+seq (1 , 10)
 #'short form of seq
 1:10
 
@@ -73,62 +73,67 @@ seq (1 ,10)
 #' it is like a topographical map
 set.seed(3)
 x = 1:100
-y=x
-f = outer (x ,y , function (x , y ) cos ( y ) /(1+ x ^2) )
-contour (x ,y , f )
-contour (x ,y ,f , nlevels =45 , add = T )
+y = x
+f = outer (x , y , function (x , y)
+  cos (y) / (1 + x ^ 2))
+contour (x , y , f)
+contour (x , y , f , nlevels = 45 , add = T)
 
-#' t gives transpose 
-fa =( f - t ( f ) ) /2
-contour (x ,y , fa , nlevels =15)
+#' t gives transpose
+fa = (f - t (f)) / 2
+contour (x , y , fa , nlevels = 15)
 
 #'image() function produces a color-coded plot whose colors depend on the z value,
 #'also known as heatmap, and is sometimes used to plot temperature in weather heatmap forecasts.
-image (x ,y , fa )
+image (x , y , fa)
 
-#'persp() can be used to produce a three-dimensional plot. 
+#'persp() can be used to produce a three-dimensional plot.
 #'The arguments theta and phi control the angles at which the plot is viewed.
-persp (x ,y , fa )
-persp (x ,y , fa , theta =30)
-persp (x ,y , fa , theta =30 , phi =40)
+persp (x , y , fa)
+persp (x , y , fa , theta = 30)
+persp (x , y , fa , theta = 30 , phi = 40)
 
 #' Indexing Data - examine part of a set of data
-A = matrix (1:16 ,4 ,4)
+A = matrix (1:16 , 4 , 4)
 A
 #' 2nd Row, 3rd column
-A [2 ,3]
+A [2 , 3]
 
 #' 1st row and 3rd row - (2,4) column
-A [ c (1 ,3) , c (2 ,4) ]
+A [c (1 , 3) , c (2 , 4)]
 
 #' 1st row , 2nd and 3rd row - (2,3,4) column
-A [1:3 ,2:4]
+A [1:3 , 2:4]
 
 #' All columns from 1st and 2nd row
-A [1:2 ,]
+A [1:2 , ]
 
 #' All rows from 1st and 2nd column
-A [,1:2]
+A [, 1:2]
 
 #' All except 1st and 3rd row
-A [ - c (1 ,3) ,]
+A [-c (1 , 3) , ]
 
 #' dim outputs the number of rows followed by the number of columns of a given matrix
 dim(A)
- 
+
 #'read.table() function load data from a text file
 #'fix() function can be used to view it in a spreadsheet like window
-#'na.strings tells R that any time it sees a particular character or set of characters 
+#'na.strings tells R that any time it sees a particular character or set of characters
 #'(such as a question mark), it should be treated as a missing element of the data matrix
-a=read.table("ISLR/src/main/resources/input.csv", header =T , na.strings ="?") 
+a = read.table("ISLR/src/main/resources/input.csv",
+               header = T ,
+               na.strings = "?")
 fix(a)
 
-a=read.csv("ISLR/src/main/resources/input.csv", header =T , na.strings ="?") 
+a = read.csv("ISLR/src/main/resources/input.csv",
+             header = T ,
+             na.strings = "?")
 fix(a)
 dim(a)
 
 #' na.omit removes missing data
-a=na.omit(a)
+a = na.omit(a)
 fix(a)
 dim(a)
 
@@ -142,23 +147,31 @@ attach(Auto)
 #'as.factor() function converts quantitative variables into qualitative variables
 #'If the variable plotted on the x-axis is categorial, then boxplots will
 #'automatically be produced by the plot() function
-cylinders=as.factor(cylinders)
-plot(cylinders,mpg,col="red",varwidth=T,horizontal=T,xlab="Cylinders",ylab="MPG")
+cylinders = as.factor(cylinders)
+plot(
+  cylinders,
+  mpg,
+  col = "red",
+  varwidth = T,
+  horizontal = T,
+  xlab = "Cylinders",
+  ylab = "MPG"
+)
 
 #' Histogram
-hist(mpg,col = 2,breaks = 15)
+hist(mpg, col = 2, breaks = 15)
 
 #'The pairs() function creates a scatterplot matrix i.e. a scatterplot for every
 #'pair of variables for any given data set. We can also produce scatterplots
 #'for just a subset of the variables
-pairs ( Auto )
+pairs (Auto)
 
 #'Subset of columns
-pairs (~mpg + displacement + horsepower + weight +acceleration , Auto )
+pairs ( ~ mpg + displacement + horsepower + weight + acceleration , Auto)
 
-#'identify() provides a useful interactive method for identifying the value 
+#'identify() provides a useful interactive method for identifying the value
 #'for a particular variable for points on a plot.
-plot ( horsepower , mpg )
+plot (horsepower , mpg)
 #identify ( horsepower , mpg , name )
 
 #' Save command history
