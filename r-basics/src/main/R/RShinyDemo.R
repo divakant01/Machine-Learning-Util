@@ -5,18 +5,20 @@
 #'@Description Source Hospital Data
 #'
 
+#Load Shiny, Themes and Dashboard, DT for Data Table in UI, data.table for loading files
 library(shiny)
 library(shinythemes)
-
 library(shinydashboard)
-
 library(DT)
 library(data.table)
 
-files = list.files("data/", pattern = "*.csv")
+# Find all csv files in the current directory
+files = list.files(pattern = "*.csv")
+
+#Combine multiple data.table to one using rbind, fread for reading files listed above
 hospital_table = as.data.frame(do.call(rbind, lapply(files, fread)))
 
-
+#Prepare Dashboard Header
 dashboardHeader <- dashboardHeader(disable = TRUE)
 dashboardSidebar <- dashboardSidebar(disable = TRUE, sidebarMenu(
   menuItem(
@@ -28,7 +30,7 @@ dashboardSidebar <- dashboardSidebar(disable = TRUE, sidebarMenu(
 ))
 
 
-
+#Prepare Dashboard Tabs
 histogram <- tabItem(tabName = "dashboard",
                      fluidRow(
                        box(
@@ -51,9 +53,10 @@ widget <- tabItem(tabName = "widgets", h2("Widgets tab content"))
 
 tabItems <- tabItems(histogram, widget)
 
+#Prepare Dashboard Body
 dashboardBody <- dashboardBody(tabItems)
 
-# Define UI for application that draws a histogram
+# Define UI for Multi page application, It has a Data Table, File Uploader, Histogram and Dashboard
 ui <- shinyUI(
   navbarPage(
     "My Application",
@@ -125,7 +128,7 @@ ui <- shinyUI(
   )
 )
 
-# Define server logic required to draw a histogram
+# Define server logic
 server <- shinyServer(function(input, output) {
   output$ex1 <-
     DT::renderDataTable(DT::datatable(hospital_table[, input$show_vars, drop = FALSE],
