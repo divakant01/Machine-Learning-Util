@@ -1,3 +1,9 @@
+#'@author Divakant Pandey
+#'
+#'@title Linear Regression Advertisin Data
+#'
+#'@Description Regression Analysis on Advertising data
+#'
 library(ggplot2)
 library(data.table)
 
