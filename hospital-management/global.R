@@ -10,43 +10,34 @@ dataProperty.IPD="data/IPD/"
 dataProperty.OPD="data/OPD/"
 dataProperty.PRO="data/PRO/"
 dataProperty.Procedure="data/Procedure/"
-dataProperty.Xray="data/XRay/"
+dataProperty.Xray="data/Xray/"
             
 #' Multiple Workbooks, Multiple Sheets, 
 #' Combines all files inside a folder to a single data frame adn return.
-# getExcelData = function(directory) {
-#   files = list.files(
-#     path = directory,
-#     pattern = "*.xlsx",
-#     full.names = TRUE,
-#     all.files = FALSE
-#   )
-#  
-#   files = subset(files,!grepl("~", files))
-#   loadWorkBooks = lapply(files, loadWorkbook)
-#   readWorksheets = list()
-#   
-#   for (i in 1:length(loadWorkBooks)) {
-#     readWorksheets[[i]] = rbind.fill(readWorksheet(loadWorkBooks[[i]], sheet = getSheets(loadWorkBooks[[i]]),dateTimeFormat = "%d/%m/%Y"))
-#   }
-# 
-#   message("Reading Directory ", directory," ,Files=",files," ,Workbooks=",length(loadWorkBooks)," ,DF=",length(readWorksheets))
-#   excel.data <- rbind.fill(readWorksheets)
-#   # excel.data = unique(excel.data[!apply(is.na(excel.data) | excel.data == "", 1, all), ])
-#   # Unique Column
-#   #OPD=OPD[!duplicated(as.list(OPD))]
-#   
-#   return(excel.data)
-# }
-# 
-
-getCsvData=function(directory){
+getExcelData = function(directory) {
+  files = list.files(
+    path = directory,
+    pattern = "*.xlsx",
+    full.names = TRUE,
+    all.files = FALSE
+  )
+ 
+  files = subset(files,!grepl("~", files))
+  loadWorkBooks = lapply(files, loadWorkbook)
+  readWorksheets = list()
   
-  files = list.files(path = directory,pattern = "*.csv",full.names = TRUE)
-  df = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-  message("Reading Directory ", directory," ,Files=",files,", DF= ",dim(df))
-  return(unique(df[!apply(is.na(df) | df == "", 1, all),]))
-} 
+  for (i in 1:length(loadWorkBooks)) {
+    readWorksheets[[i]] = rbind.fill(readWorksheet(loadWorkBooks[[i]], sheet = getSheets(loadWorkBooks[[i]]),dateTimeFormat = "%d/%m/%Y"))
+  }
+  
+  message("Reading Directory ", directory," ,Files=",files," ,Workbooks=",length(loadWorkBooks)," ,DF=",length(readWorksheets))
+  excel.data <- rbind.fill(readWorksheets)
+  # excel.data = unique(excel.data[!apply(is.na(excel.data) | excel.data == "", 1, all), ])
+  # Unique Column
+  #OPD=OPD[!duplicated(as.list(OPD))]
+  
+  return(excel.data)
+}
 
 fetchNonEmptyUniqueDf=function(df.data){
   tryCatch(unique(df.data[!apply(is.na(df.data) | df.data == "", 1, all), ]),error=function(err){
@@ -69,23 +60,23 @@ addDateParameters = function(df.data, colname) {
 }
 
 #IPD
-IPD = getCsvData(dataProperty.IPD)
-# IPD = fetchNonEmptyUniqueDf(IPD)#unique(IPD[!apply(is.na(IPD) | IPD == "", 1, all), ])
+IPD = getExcelData(dataProperty.IPD)
+IPD = fetchNonEmptyUniqueDf(IPD)#unique(IPD[!apply(is.na(IPD) | IPD == "", 1, all), ])
 IPD =addDateParameters(IPD,IPD$AdmissionDate)
 IPD$S.NO. = NULL
 IPD_sub=IPD[,!(colnames(IPD) %in% c("year","day","month","quarter"))]
 
 #OPD
-OPD = getCsvData(dataProperty.OPD)
-# OPD = fetchNonEmptyUniqueDf(OPD)
+OPD = getExcelData(dataProperty.OPD)
+OPD = fetchNonEmptyUniqueDf(OPD)
 OPD=addDateParameters(OPD,OPD$Date)
 OPD$SRE_NO = NULL
 OPD_sub=OPD[,!(colnames(OPD) %in% c("year","day","month","quarter"))]
 
 
 #Procedure
-Procedure = getCsvData(dataProperty.Procedure)
-# Procedure = fetchNonEmptyUniqueDf(Procedure)#unique(Procedure[!apply(is.na(Procedure) |Procedure == "", 1, all),])
+Procedure = getExcelData(dataProperty.Procedure)
+Procedure = fetchNonEmptyUniqueDf(Procedure)#unique(Procedure[!apply(is.na(Procedure) |Procedure == "", 1, all),])
 Procedure=addDateParameters(Procedure,Procedure$Date)
 Procedure$Sr..No. = NULL
 Procedure$X = NULL
@@ -93,26 +84,26 @@ Procedure_sub=Procedure[,!(colnames(Procedure) %in% c("year","day","month","quar
 
 
 # Xray
-Xray = getCsvData(dataProperty.Xray)
-# Xray=fetchNonEmptyUniqueDf(Xray)
+Xray = getExcelData(dataProperty.Xray)
+Xray=fetchNonEmptyUniqueDf(Xray)
 Xray=addDateParameters(Xray,Xray$Date)
 Xray$sr_no = NULL
 Xray_sub=Xray[,!(colnames(Xray) %in% c("year","day","month","quarter"))]
 
 
 # Cashbook
-Cashbook = getCsvData(dataProperty.cashbook)
-# Cashbook=fetchNonEmptyUniqueDf(Cashbook)
+Cashbook = getExcelData(dataProperty.cashbook)
+Cashbook=fetchNonEmptyUniqueDf(Cashbook)
 Cashbook=addDateParameters(Cashbook,Cashbook$Date)
 Cashbook_sub=Cashbook[,!(colnames(Cashbook) %in% c("year","day","month","quarter"))]
 
 # Pro
-Pro = getCsvData(dataProperty.PRO)
-# Pro=fetchNonEmptyUniqueDf(Pro)
+Pro = getExcelData(dataProperty.PRO)
+Pro=fetchNonEmptyUniqueDf(Pro)
 Pro=addDateParameters(Pro,Pro$Date)
 Pro_sub=Pro[,!(colnames(Pro) %in% c("year","day","month","quarter"))]
 
-message(objects())
+
 
 # Dashboard - Graph 1
 patientVisitByCityIPD= IPD %>% group_by(year=stringi::stri_trans_totitle(year),City=stringi::stri_trans_totitle(City)) %>% count()
@@ -150,6 +141,7 @@ names(IPD.age)[names(IPD.age) == 'Issue'] <- 'Diagnosis'
 IPD.age=na.omit(IPD.age)
 OPD.age=na.omit(OPD.age)
 age.data=merge(IPD.age,OPD.age,all = TRUE)
+age.data=na.omit(age.data)
 
 
 

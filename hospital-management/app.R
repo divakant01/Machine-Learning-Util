@@ -20,7 +20,7 @@ library(reshape2)
 # Always load dplyr after plyr or refer API with pkgname::func
 library(dplyr)
 
-library(XLConnect)
+#library(XLConnect)
 #library(properties)
 
 #dataProperty<- read.properties("data.properties")
@@ -32,7 +32,7 @@ source("Dashboard.R")
 # Define UI for Multi page application, It has a Data Table, File Uploader, Histogram and Dashboard
 ui <- shinyUI(
   navbarPage(
-    "Kalyani Knee & Shoulder Clinic",
+    "Hospital Name",
     theme =  shinytheme("cerulean"),
     #shinythemes::themeSelector(),
     
@@ -253,15 +253,17 @@ server <- shinyServer(function(input, output) {
   #Dashboard 3
   output$shareLine <- renderPlot({
     ggplot(data = age.data, aes(
-      x = factor(Diagnosis),
+      x = Age,
       y = sum,
-      fill = ageRange
-    )) +
-      geom_bar(position = "dodge", stat = "identity") + ylab("Age Frequency") +
-      xlab("Diagnosis") + theme(legend.position = "right"
+      #group=factor(Diagnosis),
+      color=Diagnosis
+    )) +geom_point()+
+      geom_line(position = "dodge", stat = "identity") + ylab("Age Frequency") +
+      scale_x_continuous(breaks = round(seq(min(age.data$Age), max(age.data$Age), by = 20),1)) +
+      xlab("Age Range") + theme(legend.position = "bottom"
                                 ,
                                 plot.title = element_text(size = 15, face = "bold")) +
-      ggtitle("Issues By Age") + labs(fill = "Age Range := ")#+scale_x_discrete(labels = abbreviate)
+      ggtitle("Issues By Age") + labs(fill = "Diagnosis ")#+scale_x_discrete(labels = abbreviate)
     
   })
   
