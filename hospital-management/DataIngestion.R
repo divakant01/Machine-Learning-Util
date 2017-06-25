@@ -5,127 +5,186 @@
 #'@Description Source Hospital Data
 #'
 
-# Find all csv files in the current directory
+dataProperty.cashbook="data/Cashbook/"
+dataProperty.IPD="data/IPD/"
+dataProperty.OPD="data/OPD/"
+dataProperty.PRO="data/PRO/"
+dataProperty.Procedure="data/Procedure/"
+dataProperty.Xray="data/Xray/"
+            
+#' Multiple Workbooks, Multiple Sheets, 
+#' Combines all files inside a folder to a single data frame adn return.
+getExcelData = function(directory) {
+  files = list.files(
+    path = directory,
+    pattern = "*.xlsx",
+    full.names = TRUE,
+    all.files = FALSE
+  )
+ 
+  files = subset(files,!grepl("~", files))
+  loadWorkBooks = lapply(files, loadWorkbook)
+  readWorksheets = list()
+  
+  for (i in 1:length(loadWorkBooks)) {
+    readWorksheets[[i]] = rbind.fill(readWorksheet(loadWorkBooks[[i]], sheet = getSheets(loadWorkBooks[[i]]),dateTimeFormat = "%d/%m/%Y"))
+  }
+  
+  message("Reading Directory ", directory," ,Files=",files," ,Workbooks=",length(loadWorkBooks)," ,DF=",length(readWorksheets))
+  excel.data <- rbind.fill(readWorksheets)
+  # excel.data = unique(excel.data[!apply(is.na(excel.data) | excel.data == "", 1, all), ])
+  # Unique Column
+  #OPD=OPD[!duplicated(as.list(OPD))]
+  
+  return(excel.data)
+}
 
+fetchNonEmptyUniqueDf=function(df.data){
+  tryCatch(unique(df.data[!apply(is.na(df.data) | df.data == "", 1, all), ]),error=function(err){
+    return(unique(df.data))
+  })
+}
 
-#Combine multiple data.table to one using rbind, fread for reading files listed above
-#tableData = as.data.frame(do.call(rbind, lapply(files, fread)))
-#tableData=na.omit(tableData)
+addDateParameters = function(df.data, colname) {
+  dateFrame <- as.Date(colname, "%d/%m/%Y")
+  # For Numeric - as.POSIXlt(transactionData$date)$wday
+  df.data$day = weekdays(dateFrame)
+  
+  df.data$month = months(dateFrame)
+  
+  df.data$quarter = quarters(dateFrame)
+  
+  df.data$year = year(dateFrame)
+  
+  return(df.data)
+}
 
 #IPD
-files = list.files(path = "data/IPD/",pattern = "*.csv",full.names = TRUE)
-IPD = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-IPD=unique(IPD[!apply(is.na(IPD) | IPD == "", 1, all),])
-#IPD=IPD[!duplicated(as.list(IPD))]
-IPD$S.NO.=NULL
+IPD = getExcelData(dataProperty.IPD)
+IPD = fetchNonEmptyUniqueDf(IPD)#unique(IPD[!apply(is.na(IPD) | IPD == "", 1, all), ])
+IPD =addDateParameters(IPD,IPD$AdmissionDate)
+IPD$S.NO. = NULL
+IPD_sub=IPD[,!(colnames(IPD) %in% c("year","day","month","quarter"))]
 
 #OPD
-files = list.files(path = "data/OPD/",pattern = "*.csv",full.names = TRUE)
-OPD = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-OPD=unique(OPD[!apply(is.na(OPD) | OPD == "", 1, all),])
-#OPD=OPD[!duplicated(as.list(OPD))]
-OPD$SRE_NO=NULL
+OPD = getExcelData(dataProperty.OPD)
+OPD = fetchNonEmptyUniqueDf(OPD)
+OPD=addDateParameters(OPD,OPD$Date)
+OPD$SRE_NO = NULL
+OPD_sub=OPD[,!(colnames(OPD) %in% c("year","day","month","quarter"))]
+
 
 #Procedure
-files = list.files(path = "data/Procedure/",pattern = "*.csv",full.names = TRUE)
-Procedure = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-Procedure=unique(Procedure[!apply(is.na(Procedure) | Procedure == "", 1, all),])
-#Procedure=Procedure[!duplicated(as.list(Procedure))]
-Procedure$Sr..No.=NULL
-Procedure$X=NULL
+Procedure = getExcelData(dataProperty.Procedure)
+Procedure = fetchNonEmptyUniqueDf(Procedure)#unique(Procedure[!apply(is.na(Procedure) |Procedure == "", 1, all),])
+Procedure=addDateParameters(Procedure,Procedure$Date)
+Procedure$Sr..No. = NULL
+Procedure$X = NULL
+Procedure_sub=Procedure[,!(colnames(Procedure) %in% c("year","day","month","quarter"))]
+
 
 # Xray
-files = list.files(path = "data/XRay/",pattern = "*.csv",full.names = TRUE)
-Xray = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-Xray=unique(Xray[!apply(is.na(Xray) | Xray == "", 1, all),])
-#Xray=Xray[!duplicated(as.list(Xray))]
-Xray$sr_no=NULL
+Xray = getExcelData(dataProperty.Xray)
+Xray=fetchNonEmptyUniqueDf(Xray)
+Xray=addDateParameters(Xray,Xray$Date)
+Xray$sr_no = NULL
+Xray_sub=Xray[,!(colnames(Xray) %in% c("year","day","month","quarter"))]
+
 
 # Cashbook
-files = list.files(path = "data/Cashbook/",pattern = "*.csv",full.names = TRUE)
-Cashbook = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-Cashbook=unique(Cashbook[!apply(is.na(Cashbook) | Cashbook == "", 1, all),])
-#Cashbook=Cashbook[!duplicated(as.list(Cashbook))]
+Cashbook = getExcelData(dataProperty.cashbook)
+Cashbook=fetchNonEmptyUniqueDf(Cashbook)
+Cashbook=addDateParameters(Cashbook,Cashbook$Date)
+Cashbook_sub=Cashbook[,!(colnames(Cashbook) %in% c("year","day","month","quarter"))]
 
 # Pro
-files = list.files(path = "data/PRO/",pattern = "*.csv",full.names = TRUE)
-Pro = as.data.frame(do.call(rbind, lapply(files, read.csv)))
-Pro=unique(Pro[!apply(is.na(Pro) | Pro == "", 1, all),])
-#Pro=Pro[!duplicated(as.list(Pro))]
-
-
-patientData = (as.data.frame(fread("patient_data.csv")))
-transactionData = na.omit(as.data.frame(fread("transaction_data.csv")))
+Pro = getExcelData(dataProperty.PRO)
+Pro=fetchNonEmptyUniqueDf(Pro)
+Pro=addDateParameters(Pro,Pro$Date)
+Pro_sub=Pro[,!(colnames(Pro) %in% c("year","day","month","quarter"))]
 
 
 
+# Dashboard - Graph 1
+patientVisitByCityIPD= IPD %>% group_by(year=stringi::stri_trans_totitle(year),City=stringi::stri_trans_totitle(City)) %>% count()
+patientVisitByCityIPD$type="IPD"
 
-dateFrame <- as.Date(transactionData$date, "%d/%m/%Y")
+patientVisitByCityOPD = OPD %>% group_by(year=stringi::stri_trans_totitle(year),City=stringi::stri_trans_totitle(City)) %>% count()
+patientVisitByCityOPD$type="OPD"
 
-# For Numeric - as.POSIXlt(transactionData$date)$wday
-transactionData$day = weekdays(dateFrame)
-
-transactionData$month = months(dateFrame)
-
-transactionData$quarter = quarters(dateFrame)
-
-transactionData$year = year(dateFrame)
-
-#Table Data
-tableData= transactionData %>% inner_join(patientData, by=c("pid"="id")) %>% select(name,city,state, date,issue,fees)
-  
-# KPI - 1
-totalPatientVisited=count(transactionData)
-
-# KPI 2- Total Sales for Current Year
-maxSalesforCurrentYear=transactionData %>% group_by(year) %>%  dplyr::summarise(sum= sum(fees)) %>% arrange(desc(year)) %>% head(1)
-
-visitGap = 7
-
-countByTotalPatientVisit = select(inner_join(count(transactionData, pid), patientData, by =
-                                               c("pid" = "id")), name, n)
+patientVisitByCity=na.omit(merge(patientVisitByCityIPD,patientVisitByCityOPD,all = TRUE))
 
 
-# Count By city covered
-countByCity = count(transactionData, city)
 
-#No Days Gap between similar patient visit
-countByUniquePatientVisit = transactionData %>% group_by(pid) %>% mutate(Diff =
-                                                                           c(NA, abs(diff.Date(
-                                                                             as.Date(date, "%d/%m/%Y")
+# Dashboard - Graph 2
 
-                                                                                                                                                        )))) %>% filter(Diff > visitGap) %>% count(pid) %>% inner_join(patientData,by=c("pid"="id")) %>% select(name,n,pid)
-# Report 1 - Sales Comparison based on Unique Visitors
-salesPercent= countByTotalPatientVisit %>% inner_join(countByUniquePatientVisit, by=c("name"="name"),suffix=c(".a",".b")) %>% mutate(sales_percent=round((n.b/n.a)*100.0,digits=2))
+# Convert all numeric NA's to 0
+Cashbook[c("OPD", "Procedure","XRAY", "IPD","Pathology", "Others","HospitalPayment")][is.na(Cashbook[c("OPD", "Procedure","XRAY", "IPD","Pathology", "Others","HospitalPayment")])] <- 0
 
-# KPI - 3 - Expected Total Sales Turnover
-salesTurnover= (sum(salesPercent$n.b)/sum(salesPercent$n.a))*100.0
+# Get stats
+cashSummary=unique( Cashbook %>% group_by(year,month) %>% mutate(OPD =sum(OPD),Procedure=sum(Procedure),XRAY =sum(XRAY),IPD=sum(IPD),Pathology =sum(Pathology),Others=sum(Others),HospitalPayment=sum(HospitalPayment)) %>% select(year,month,OPD,Procedure,XRAY,IPD,Pathology,Others,HospitalPayment))
 
-# Report 2 - Total Sales per city
-SalesByCity=transactionData %>% group_by(city) %>% dplyr::summarise(sum(fees)) 
+CashSummary.col=names(cashSummary)
+CashSummary.col=CashSummary.col[!CashSummary.col %in% c("year","month") ]
 
-# Total Sales per city, year, month -Dashboard 1
-summarisedSalesByCity=transactionData %>% group_by(year,city) %>% dplyr::summarise(sum=sum(fees)) 
-
-# Dashboard 4 - Total Sales per Quarter
-salesByQuarter=transactionData %>% group_by(year,quarter) %>% dplyr::summarise(n=sum(fees)) 
-
-# Report 3 - Total Sales per issue, year
-summarisedSalesByIssueNYr=unique(transactionData %>% group_by(issue,year) %>% mutate(sum=sum(fees)) %>% select(issue,year,sum)) 
-
-# Total Sales per issue, year, month - Dashboard 2
-summarisedSalesByIssue=transactionData %>% group_by(issue,year,month) %>% mutate(sum=sum(fees)) %>% select(issue,year,month,sum) 
-
-# Report 4 - Total Sales per issue, city, year, month
-summarisedSalesByIssueNCity=transactionData %>% group_by(issue,city, year) %>% mutate(sum=sum(fees)) %>% select(issue,city,year,sum) 
+# Melt CashSummary DF - ie convert Columns to Row values.
+cashData=na.omit(melt(cashSummary,measure.vars = CashSummary.col,na.rm = TRUE))
 
 
-# Dashboard 3 - Issue by Age Group
-grpByAge=patientData %>% inner_join(transactionData, by=c("id"="pid")) %>% select(age,issue,year)
+# Dashboard Report 3 - Issue by Age Group
+
+IPD.age=IPD[,c("Age","Issue")] %>% count(Age,Issue=stringi::stri_trans_totitle(Issue))
+OPD.age=OPD[,c("Age","Diagnosis")] %>% count(Age,Diagnosis=stringi::stri_trans_totitle(Diagnosis))
+
+names(IPD.age)[names(IPD.age) == 'Issue'] <- 'Diagnosis'
+
+IPD.age=na.omit(IPD.age)
+OPD.age=na.omit(OPD.age)
+
+age.data=merge(IPD.age,OPD.age,all = TRUE)
+
+
 
 # Create Grouping/bins
-grpByAge$ageBins=cut(x=grpByAge$age,breaks = round(seq(from=1,to=ceiling(max(grpByAge$age)),length.out = length(grpByAge$age)),digits = 0))
+age.data$ageRange = cut(x = age.data$Age, breaks = round(seq(
+  from = 1,
+  to = ceiling(max(age.data$Age)),
+  length.out = length(age.data$Age)
+), digits = 0))
 
-# Report 5 Age Range / Issues
-grpByAge=grpByAge%>% count(ageBins,issue)
+
+
+age.data = age.data %>% group_by(ageRange, Diagnosis) %>% dplyr::summarise(sum=sum(n))
+
+
+# Dashboard 4 - Total Sales per Quarter
+
+yearlySalesbyDept=cashData %>% group_by(year,month,variable) %>% dplyr::summarise(sum=sum(value))   
+
+
+# KPI - 1
+totalPatientVisited = count(OPD)
+
+# KPI 2- Total Sales for Current Year
+currentYr=cashData %>%arrange(desc(year)) %>% head(1) %>% select(year)
+salesCurrentYR= Cashbook %>% filter(Cashbook$year==currentYr$year)
+
+columns=colSums(salesCurrentYR[,c("OPD","Procedure","XRAY","IPD","Pathology","Others","HospitalPayment")])
+maxSalesforCurrentYear=columns[["OPD"]]+columns[["Procedure"]]+columns[["XRAY"]]+columns[["IPD"]]+columns[["Pathology"]]+columns[["Others"]]-columns[["HospitalPayment"]]
+
+# KPI - 3 - Expected Total Sales Turnover
+salesColumns=colSums(Cashbook[,c("OPD","Procedure","XRAY","IPD","Pathology","Others","HospitalPayment")])
+totalSales=salesColumns[["OPD"]]+salesColumns[["Procedure"]]+salesColumns[["XRAY"]]+salesColumns[["IPD"]]+salesColumns[["Pathology"]]+salesColumns[["Others"]]-salesColumns[["HospitalPayment"]]
+salesTurnover=(maxSalesforCurrentYear/totalSales)*100.0
+
+# Table 1
+salesByDept= cashData %>% group_by(year,variable) %>% dplyr::summarise(sum=sum(value))
+
+# Table 2
+patientVisits=patientVisitByCity %>% select(year,City,n,type)
+
+
+# Table 3 age.data
+ageData=age.data %>% select(ageRange,Diagnosis,sum)
+
 

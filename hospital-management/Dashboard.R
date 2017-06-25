@@ -23,21 +23,7 @@ frow1 <- fluidRow(
 frow2 <- fluidRow(
   #  sales by City
   box(
-    title = "Sales per City By Year and Month"
-    ,
-    status = "primary"
-    ,
-    solidHeader = TRUE
-    ,
-    collapsible = TRUE
-    ,
-    plotOutput("salesQuartBar", height = "380px")
-  )
-  
-  #  sales by Issue
-  ,
-  box(
-    title = "Sales per Issue By Year and Month"
+    title = "Patient Visit by City per Year and Month"
     ,
     status = "primary"
     ,
@@ -46,9 +32,29 @@ frow2 <- fluidRow(
     collapsible = TRUE
     ,
     selectInput(
-      "select_Issue",
-      "Select an Issue:",
-      choices = unique(summarisedSalesByIssue$issue),
+      "select_patient_type",
+      "Select Department:",
+      choices = unique(patientVisitByCity$type),
+      width = "150px"
+    ),
+    plotOutput("patientVisitTrend", height = "300px")
+  )
+  
+  #  sales by Department
+  ,
+  box(
+    title = "Diagnosis Frequency"
+    ,
+    status = "primary"
+    ,
+    solidHeader = TRUE
+    ,
+    collapsible = TRUE
+    ,
+    selectInput(
+      "select_Dept_Year",
+      "Select Year:",
+      choices = unique(cashData$year),
       width = "150px"
     )
     ,
@@ -75,21 +81,21 @@ frow3 <- fluidRow(
   
   ,
   box(
-    title = "Quarter Sales Comparison"
+    title = "Yearly Sales Comparison"
     ,
     status = "primary"
     ,
     solidHeader = TRUE
     ,
     collapsible = TRUE,
-    selectInput(
-      "select_Year",
-      "Select Year",
-      choices = unique(salesByQuarter$year),
-      width = "150px"
-    )
-    ,
-    plotOutput("quarterPie", height = "300px")
+    # selectInput(
+    #   "select_month",
+    #   "compare Sales",
+    #   choices = unique(yearlySalesbyDept$month),
+    #   width = "150px"
+    # )
+    # ,
+    plotOutput("quarterPie", height = "380px")
     
   )
   
@@ -114,12 +120,7 @@ frow4 <- fluidRow(tabBox(
   ,
   tabPanel(title = "Sales by Model"
            , dataTableOutput("salesPercent"))
-  # ,
-  # tabPanel(title = "Sales by Quarter"
-  #          , dataTableOutput("salesbyquarter"))
-  # ,
-  # tabPanel(title = "Prior Year Sales"
-  #          , dataTableOutput("prioryearsales"))
+
 ))
 
 # ouput for the source info

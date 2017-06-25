@@ -5,8 +5,6 @@
 #'@Description Source Hospital Data
 #'
 
-#setwd("~/Documents/R/multi-page")
-
 #Load Shiny, Themes and Dashboard, DT for Data Table in UI, data.table for loading files
 library(plyr)
 library(ggplot2)
@@ -16,15 +14,20 @@ library(shinythemes)
 library(shinydashboard)
 library(DT)
 library(plotly)
-
 library(data.table)
+library(reshape2)
 
 # Always load dplyr after plyr or refer API with pkgname::func
 library(dplyr)
 
+library(XLConnect)
+#library(properties)
+
+#dataProperty<- read.properties("data.properties")
 
 source("DataIngestion.R")
 source("Dashboard.R")
+
 
 # Define UI for Multi page application, It has a Data Table, File Uploader, Histogram and Dashboard
 ui <- shinyUI(
@@ -40,20 +43,12 @@ ui <- shinyUI(
     
     tabPanel(
       "Tabular Reports",
-      #dashboardPage(tabularHeader, tabularSidebar, tabularBody)
-      # sidebarLayout(
-      #   sidebarPanel(
-      #     selectInput("dataset", "Choose a dataset:", 
-      #                 choices = c("rock", "pressure", "cars"))
-      #      ,downloadButton('downloadData', 'Download')
-      #   ),
-      #   mainPanel(
+      
           tabBox(width = 9,
-            tabPanel("Sales Turnover Calculation", dataTableOutput("salesPercent")),
-            tabPanel("Sales per City", dataTableOutput("salesPerCity")),
-            tabPanel("Sales per Issue", dataTableOutput("summarisedSalesByIssueNYr")),
-            tabPanel("Sales per issue By City", dataTableOutput("summarisedSalesByIssueNCity")),
-            tabPanel("Issue By Age", dataTableOutput("grpByAge"))
+            tabPanel("Yearly Sales by Department", dataTableOutput("salesPercent")),
+            tabPanel("Patient Visit Frequency", dataTableOutput("patientVisits")),
+            tabPanel("Diagnosis by Age", dataTableOutput("ageData"))
+            
         )
       
     ),
@@ -63,8 +58,8 @@ ui <- shinyUI(
         checkboxGroupInput(
           'show_vars',
           'Columns Filter:',
-          names(OPD),
-          selected = names(OPD)
+          names(OPD_sub),
+          selected = names(OPD_sub)
         )
       ),
       mainPanel(DT::dataTableOutput('OPD'))
@@ -75,8 +70,8 @@ ui <- shinyUI(
         checkboxGroupInput(
           'show_vars1',
           'Columns Filter:',
-          names(Xray),
-          selected = names(Xray)
+          names(Xray_sub),
+          selected = names(Xray_sub)
         )
       ),
       mainPanel(DT::dataTableOutput('Xray'))
@@ -87,8 +82,8 @@ ui <- shinyUI(
         checkboxGroupInput(
           'show_vars4',
           'Columns Filter:',
-          names(Procedure),
-          selected = names(Procedure)
+          names(Procedure_sub),
+          selected = names(Procedure_sub)
         )
       ),
       mainPanel(DT::dataTableOutput('Procedure'))
@@ -99,8 +94,8 @@ ui <- shinyUI(
         checkboxGroupInput(
           'show_vars2',
           'Columns Filter:',
-          names(IPD),
-          selected = names(IPD)
+          names(IPD_sub),
+          selected = names(IPD_sub)
         )
       ),
       mainPanel(DT::dataTableOutput('IPD'))
@@ -111,8 +106,8 @@ ui <- shinyUI(
         checkboxGroupInput(
           'show_vars3',
           'Columns Filter:',
-          names(Cashbook),
-          selected = names(Cashbook)
+          names(Cashbook_sub),
+          selected = names(Cashbook_sub)
         )
       ),
       mainPanel(DT::dataTableOutput('Cashbook'))
@@ -123,8 +118,8 @@ ui <- shinyUI(
         checkboxGroupInput(
           'show_vars5',
           'Columns Filter:',
-          names(Pro),
-          selected = names(Pro)
+          names(Pro_sub),
+          selected = names(Pro_sub)
         )
       ),
       mainPanel(DT::dataTableOutput('Pro'))
@@ -132,29 +127,34 @@ ui <- shinyUI(
   )
 )
 
+
 # Define server logic
 server <- shinyServer(function(input, output) {
+  #source("DataIngestion.R")
   output$IPD <-
-    DT::renderDataTable(DT::datatable(IPD[, input$show_vars2, drop = FALSE],
+    DT::renderDataTable(DT::datatable(IPD_sub[, input$show_vars2, drop = FALSE],
                                       options = list(pageLength = 25)))
-  output$OPD <-
-    DT::renderDataTable(DT::datatable(OPD[, input$show_vars, drop = FALSE],
+  output$OPD <-{
+   # OPD_sub=OPD[,!(colnames(OPD) %in% c("year","day","month","quarter"))]
+    
+    DT::renderDataTable(DT::datatable(OPD_sub[, input$show_vars, drop = FALSE],
                                       options = list(pageLength = 25)))
+  }
   
   output$Xray <-
-    DT::renderDataTable(DT::datatable(Xray[, input$show_vars1, drop = FALSE],
+    DT::renderDataTable(DT::datatable(Xray_sub[, input$show_vars1, drop = FALSE],
                                       options = list(pageLength = 25)))
   
   output$Cashbook <-
-    DT::renderDataTable(DT::datatable(Cashbook[, input$show_vars3, drop = FALSE],
+    DT::renderDataTable(DT::datatable(Cashbook_sub[, input$show_vars3, drop = FALSE],
                                       options = list(pageLength = 25)))
   
   output$Pro <-
-    DT::renderDataTable(DT::datatable(Pro[, input$show_vars5, drop = FALSE],
+    DT::renderDataTable(DT::datatable(Pro_sub[, input$show_vars5, drop = FALSE],
                                       options = list(pageLength = 25)))
   
   output$Procedure <-
-    DT::renderDataTable(DT::datatable(Procedure[, input$show_vars4, drop = FALSE],
+    DT::renderDataTable(DT::datatable(Procedure_sub[, input$show_vars4, drop = FALSE],
                                       options = list(pageLength = 25)))
   
   
@@ -172,9 +172,9 @@ server <- shinyServer(function(input, output) {
       icon = icon("user")
       ,
       color = ifelse(
-        totalPatientVisited$n <= 5,
+        totalPatientVisited$n <= 2000,
         "red",
-        ifelse(totalPatientVisited$n <= 20, "yellow", "green")
+        ifelse(totalPatientVisited$n <= 4000, "yellow", "green")
       )
     )
     
@@ -183,16 +183,16 @@ server <- shinyServer(function(input, output) {
   # fluid row 1, kpi 2: Total Sales For Current Year
   output$totalSalesForCurrentYear <- renderValueBox({
     valueBox(
-      paste0(maxSalesforCurrentYear$sum)
+      paste0(maxSalesforCurrentYear)
       ,
-      paste("Total Sales for ", maxSalesforCurrentYear$year)
+      paste("Overall Sales for ",currentYr$year)
       ,
       icon = icon("inr")
       ,
       color = ifelse(
-        maxSalesforCurrentYear$sum <= 500,
+        maxSalesforCurrentYear <= 1000000,
         "red",
-        ifelse(maxSalesforCurrentYear$sum <= 800, "yellow", "green")
+        ifelse(maxSalesforCurrentYear <= 1500000, "yellow", "green")
       )
     )
   })
@@ -214,37 +214,37 @@ server <- shinyServer(function(input, output) {
     )
   })
   
-  #Dashboard 1 sales by region quarter bar graph
-  output$salesQuartBar <- renderPlot({
-    # summarisedSalesByCity_sub<-subset(summarisedSalesByCity,summarisedSalesByCity$city==input$select_City)
-    
-    ggplot(data = summarisedSalesByCity, aes(
+  #Dashboard Chart 1 
+  output$patientVisitTrend <- renderPlot({
+    patientVisitByCity_sub<-subset(patientVisitByCity,patientVisitByCity$type==input$select_patient_type)
+
+    ggplot(data = patientVisitByCity_sub, aes(
       x = factor(year),
-      y = sum,
-      group = city,
-      color = city
+      y = n,
+      group = City,
+      color = factor(City)
     )) + geom_line(size = 1.5,
                    position = "dodge",
                    stat = "identity") + geom_point(size = 3, fill = "white") +
-      scale_shape_manual(values = c(22, 21)) + ylab("Sales By City") + xlab("Year") +
-      labs(fill = "City Legend := ") +
-      theme(legend.position = "bottom",
+      scale_shape_manual(values = c(22, 21)) +  labs(color='City') +ylab("Patients Visit Count") + xlab("Year") +
+      labs(fill = "Year: ") +scale_x_discrete(labels = abbreviate)+
+      theme(legend.position = "right",
             plot.title = element_text(size = 15, face = "bold")) +
-      ggtitle("Sales Trend By City")
-    
-  })
+      ggtitle("Patients Visit Pattern")
+     })
   
-  #Dashboard 2 sales per issue by year and month
-  output$salesYearBar <- renderPlot({
-    summarisedSalesByIssue_sub <-
-      subset(summarisedSalesByIssue,
-             summarisedSalesByIssue$issue == input$select_Issue)
     
-    ggplot(data = summarisedSalesByIssue_sub, aes(
-      x = year,
-      y = sum,
+  #Dashboard Report 2 sales per Department by year and month
+  output$salesYearBar <- renderPlot({
+    summarisedSalesByDept_sub <-
+      subset(cashData,
+             cashData$year == input$select_Dept_Year)
+    
+    ggplot(data = summarisedSalesByDept_sub, aes(
+      x = variable,
+      y = value,
       fill = factor(month)
-    )) + geom_bar(position = "stack", stat = "identity") + coord_flip() + xlab("Year") + theme(legend.position = "bottom",
+    )) + geom_bar(position = "stack", stat = "identity") + scale_y_continuous(labels = function(n){format(n, scientific = FALSE)})+coord_flip() + xlab("Year") + theme(legend.position = "bottom",
                                                                                                plot.title = element_text(size = 15, face = "bold")) + ggtitle("Sales By Issue") + labs(fill = "Month Legend := ")
     
     
@@ -252,58 +252,50 @@ server <- shinyServer(function(input, output) {
   
   #Dashboard 3
   output$shareLine <- renderPlot({
-    ggplot(data = grpByAge, aes(
-      x = factor(ageBins),
-      y = n,
-      fill = issue
+    ggplot(data = age.data, aes(
+      x = factor(Diagnosis),
+      y = sum,
+      fill = ageRange
     )) +
-      geom_bar(position = "dodge", stat = "identity") + ylab("Issue By Age") +
-      xlab("Age Range") + theme(legend.position = "bottom"
+      geom_bar(position = "dodge", stat = "identity") + ylab("Age Frequency") +
+      xlab("Diagnosis") + theme(legend.position = "right"
                                 ,
                                 plot.title = element_text(size = 15, face = "bold")) +
-      ggtitle("Issues By Age") + labs(fill = "Issue Legend := ")
+      ggtitle("Issues By Age") + labs(fill = "Age Range := ")#+scale_x_discrete(labels = abbreviate)
     
   })
   
   #Dashboard 4
   output$quarterPie <- renderPlot({
-    salesByQuarter_sub <-
-      subset(salesByQuarter,
-             salesByQuarter$year == input$select_Year)
+
     
-    percentSales <-
-      round((salesByQuarter_sub$n / sum(salesByQuarter_sub$n)) * 100.0, digits = 2)
-    salesLabel <- paste(salesByQuarter_sub$quarter, percentSales)
-    salesLabel <- paste(salesLabel, "%", sep = "")
-    pie3D(
-      salesByQuarter_sub$n,
-      labels = salesLabel,
-      explode = 0.1	,
-      main = "Quarterly Sales Figure"
-    )
-    
+    ggplot(data = yearlySalesbyDept, aes(
+      x = factor(variable),
+      y = sum,
+      fill = factor(year)
+    )) +
+      geom_bar(position = "dodge", stat = "identity") + ylab("Total Sales") +
+      xlab("Department") + theme(legend.position = "bottom"
+                                ,
+                                plot.title = element_text(size = 15, face = "bold")) +
+      ggtitle("Yearly Department wise Sales") + labs(fill = "Year : ")
     
   })
   
   # Report 1
-  salesPercent = subset(salesPercent, select = -c(pid))
+  salesPercent = subset(salesByDept)
   setnames(salesPercent,
-           c("Name", "Total Visit", "Unique Visit", "Percentage"))
+           c("Year", "Department", "Sales"))
   output$salesPercent <- renderDataTable(salesPercent)
   
   # Report 2
-  setnames(SalesByCity,c("City","Total"))
-  output$salesPerCity <- renderDataTable(SalesByCity)
+  setnames(patientVisits,c("Year","City","Frequency","Department"))
+  output$patientVisits <- renderDataTable(patientVisits)
   
   # Report 3
-  output$summarisedSalesByIssueNYr <- renderDataTable(summarisedSalesByIssueNYr)
-  
-  # Report 4
-  output$summarisedSalesByIssueNCity <- renderDataTable(summarisedSalesByIssueNCity)
-  
-  # Report 5
-  output$grpByAge <- renderDataTable(grpByAge)
-  
+  setnames(ageData,c("AgeRange","Diagnosis","Frequency"))
+  output$ageData <- renderDataTable(ageData)
+
   output$copyRight <- renderInfoBox({
     h3(
       title = "Divakant Pandey"
@@ -314,6 +306,7 @@ server <- shinyServer(function(input, output) {
   })
   
 })
+
 
 # Run the application
 shinyApp(ui = ui, server = server)
