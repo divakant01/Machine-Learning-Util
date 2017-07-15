@@ -1,6 +1,6 @@
 #'@author Divakant Pandey
 #'
-#'@title Forward selection
+#'@title Forward and Backward selection
 #'
 #'@Description Lab Exercise
 library(ISLR)

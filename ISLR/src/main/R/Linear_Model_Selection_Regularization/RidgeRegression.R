@@ -1,6 +1,6 @@
 #'@author Divakant Pandey
 #'
-#'@title Validation Set approach
+#'@title Ridge Regression
 #'
 #'@Description Lab Exercise
 
