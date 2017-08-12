@@ -7,7 +7,7 @@
 library(ggplot2)
 library(data.table)
 
-advertising <- fread("Advertising.csv")
+advertising <- fread("http://www-bcf.usc.edu/~gareth/ISL/Advertising.csv")
 
 ggplot(advertising,aes(x=TV,y=Sales))+geom_point()+geom_smooth(method = lm)
 
