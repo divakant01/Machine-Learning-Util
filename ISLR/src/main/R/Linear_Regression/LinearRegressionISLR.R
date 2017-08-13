@@ -27,7 +27,7 @@ confint(fit,level = 0.95)
 #' Colinearity can result in very wide standard error, 
 #' Could that be the reason for wide confidence interval of NEwspaper - Below values suggest
 #'  no evidence of colinearity
-require(fmsb)
+library(fmsb)
 VIF(lm(Sales~TV,advertising))
 VIF(lm(Sales~Radio,advertising))
 VIF(lm(Sales~Newspaper,advertising))
