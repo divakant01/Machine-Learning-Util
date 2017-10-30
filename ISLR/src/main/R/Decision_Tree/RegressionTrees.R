@@ -5,7 +5,7 @@
 #'@Description ISLR Lab Exercise
 library(ISLR)
 library(MASS)
-
+library(tree)
 set.seed(1)
 
 train=sample(1:nrow(Boston),nrow(Boston)/2)
@@ -25,7 +25,7 @@ cv.boston=cv.tree(tree.boston)
 plot(cv.boston$size,cv.boston$dev,type = 'b')
 
 # Prune the tree
-prune.boston=prune.tree(tree.boston,best = 5)
+prune.boston=prune.tree(tree.boston, best = 5)
 plot(prune.boston)
 text(prune.boston,pretty = 0)
 
